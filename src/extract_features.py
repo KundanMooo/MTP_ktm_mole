@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import os
+import glob
 import numpy as np
 import pandas as pd
 from rdkit import Chem
@@ -88,12 +89,43 @@ functional_groups = {
     'Sulfonate Isothiocyanate': '[#6]S(=O)(=O)[NX2]=[CX2]=[SX1]',
 }
 
-def load_molecules(sdf_path, label):
-    suppl = Chem.SDMolSupplier(sdf_path)
-    return [(mol, label) for mol in suppl if mol is not None]
+
+def collect_sdf_files(data_dir):
+    """Scan data_dir/*.sdf, classify ‘inactive’ first, then ‘active’."""
+    pattern = os.path.join(data_dir, "*.sdf")
+    sdf_paths = sorted(glob.glob(pattern))
+
+    active, inactive = [], []
+    for path in sdf_paths:
+        name = os.path.basename(path).lower()
+        if "ins" in name:
+            inactive.append(path)
+        elif "active" in name:
+            active.append(path)
+        else:
+            print(f"⚠️  Skipping unrecognized file: {path}")
+
+    print(f"👉 Found {len(active)} active files, {len(inactive)} inactive files")
+    if not active or not inactive:
+        raise RuntimeError(f"Need both active & inactive files under {data_dir}")
+    return active, inactive
+
+def load_molecules(sdf_paths, label):
+    """Load molecules from given SDF paths, tag each with `label`."""
+    data = []
+    for sdf in sdf_paths:
+        suppl = Chem.SDMolSupplier(sdf)
+        count = 0
+        for mol in suppl:
+            if mol is not None:
+                data.append((mol, label))
+                count += 1
+        print(f"Loaded {count} molecules from {os.path.basename(sdf)} as label={label}")
+    return data
 
 def build_dataframe(data_with_ids, out_csv):
-    # Compile SMARTS once
+    """Build and save the feature DataFrame."""
+    # compile SMARTS patterns once
     smarts = {name: Chem.MolFromSmarts(patt)
               for name, patt in functional_groups.items()}
 
@@ -108,21 +140,37 @@ def build_dataframe(data_with_ids, out_csv):
     df = pd.DataFrame(rows).set_index('mol_id')
     os.makedirs(os.path.dirname(out_csv), exist_ok=True)
     df.to_csv(out_csv)
-    print(f"✅ Saved features to {out_csv}")
+    print(f"\n✅ Saved {len(df)}-row feature table to {out_csv}")
 
-def main(args):
-    actives   = load_molecules(args.active_sdf,   label=1)
-    inactives = load_molecules(args.inactive_sdf, label=0)
-    n = min(len(actives), len(inactives))
-    balanced = actives[:n] + inactives[:n]
-    np.random.shuffle(balanced)
-    data_with_ids = [(mol, lbl, idx) for idx, (mol, lbl) in enumerate(balanced)]
+def main():
+    parser = argparse.ArgumentParser(
+        description="Extract functional-group fingerprints from all SDFs in a folder"
+    )
+    parser.add_argument(
+        "--data_dir", required=True,
+        help="Folder containing *_active*.sdf and *_inactive*.sdf files"
+    )
+    parser.add_argument(
+        "--out_csv", default="output/features.csv",
+        help="Where to write the combined feature table"
+    )
+    args = parser.parse_args()
+
+    # 1) find & classify all SDF files
+    active_files, inactive_files = collect_sdf_files(args.data_dir)
+
+    # 2) load molecules
+    actives   = load_molecules(active_files,   label=1)
+    inactives = load_molecules(inactive_files, label=0)
+
+    # 3) assign unique IDs
+    combined = actives + inactives
+    data_with_ids = [
+        (mol, lbl, idx) for idx, (mol, lbl) in enumerate(combined)
+    ]
+
+    # 4) extract features & save CSV
     build_dataframe(data_with_ids, args.out_csv)
 
 if __name__ == "__main__":
-    p = argparse.ArgumentParser()
-    p.add_argument("--active_sdf",   required=True, help="Path to active.sdf")
-    p.add_argument("--inactive_sdf", required=True, help="Path to inactive.sdf")
-    p.add_argument("--out_csv",      required=True, help="Output CSV path")
-    args = p.parse_args()
-    main(args)
+    main()
