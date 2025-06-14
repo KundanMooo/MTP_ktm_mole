@@ -1,10 +1,18 @@
-# raw SDF data
-/data/
+# 1) Ignore your raw .sdf data folder
+data/
+output/
 
-# virtual environment
-/env/
-/venv/
+# 2) If you ever generate CSVs or other outputs, ignore them too
+#    (uncomment if you add an output/ folder or specific CSV)
 
-# generated output
+
+# 3) Virtual‑envs or Python byte‑code
+.env/
+venv/
+__pycache__/
+*.py[cod]
+
+# 4) OS or editor cruft
+.DS_Store
+Thumbs.db
 results.csv
-/output/
