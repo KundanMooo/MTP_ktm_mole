@@ -90,12 +90,9 @@ def get_smarts_patterns():
 
 
 def count_functional_groups(mol):
-    """
-    Count each functional group in a molecule.
-    """
     patterns = get_smarts_patterns()
     counts = {}
     for name, smarts in patterns.items():
         patt = Chem.MolFromSmarts(smarts)
-        counts[name] = len(mol.GetSubstructMatches(patt)) if patt else 0
+        counts[name] = len(mol.GetSubstructMatches(patt))
     return counts
