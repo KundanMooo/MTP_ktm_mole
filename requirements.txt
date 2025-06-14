@@ -1,4 +1,5 @@
-numpy<2
-rdkit-pypi>=2021.09.5
-pandas>=1.3
-scikit-learn>=1.0
+rdkit-pypi
+pandas
+tqdm
+# optional, if you want GPU acceleration locally:
+# cudf-cu11  # or appropriate cuDF package for your CUDA toolchain
