@@ -8,6 +8,7 @@ output/
 
 # 3) Virtual‑envs or Python byte‑code
 .env/
+env/
 venv/
 __pycache__/
 *.py[cod]
