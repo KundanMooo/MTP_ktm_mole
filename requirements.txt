@@ -1,5 +1,6 @@
 rdkit-pypi
 pandas
 tqdm
+pyarrow
 # optional, if you want GPU acceleration locally:
 # cudf-cu11  # or appropriate cuDF package for your CUDA toolchain
