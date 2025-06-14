@@ -4,7 +4,7 @@ env/
 # 2) Data: SDF files, CSV outputs, etc.
 data/
 output/
-
+results.csv
 # 3) Byte-compiled / cache files
 __pycache__/
 *.py[cod]
