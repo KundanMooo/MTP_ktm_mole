@@ -1,25 +1,10 @@
-# 1) Python virtual environment folder
-env/
+# raw SDF data
+/data/
 
-# 2) Data: SDF files, CSV outputs, etc.
-data/
-output/
-results.csv
-# 3) Byte-compiled / cache files
-__pycache__/
-*.py[cod]
-*.so
+# virtual environment
+/env/
+/venv/
 
-# 4) OS or editor files
-.DS_Store       # macOS Finder metadata
-Thumbs.db       # Windows Explorer thumbnail cache
-*.log           # any log files
-
-# 5) IDE / Editor settings
-.vscode/        # VS Code workspace settings
-.idea/          # IntelliJ / PyCharm
-
-# 6) Misc
-*.egg-info/     # packaging metadata
-*.egg
-*.pytest_cache/ # pytest cache
+# generated output
+/results.csv
+/output/
